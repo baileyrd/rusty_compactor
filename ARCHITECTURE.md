@@ -46,9 +46,20 @@ invoked per command.
 5. Independently, `rusty_compactor compress` runs the same segment-then-
    rewrite pipeline over prose text (`rc_compress`), protecting code/command/
    error spans before applying level-gated word/phrase rules.
+6. `run --from-stdin` short-circuits step 2: instead of spawning a process,
+   it reads already-captured output from stdin and feeds that straight into
+   step 3 under the given command name. This is a real execution path (not
+   test-only scaffolding) — it's what lets a saved log be replayed through
+   the compactor, and it's how the golden-fixture tests in
+   `crates/rc-cli/tests/` exercise real rule matching against captured
+   cargo/git/pytest/npm/jest/go output with none of those tools installed.
 
 ## Key decisions
-See [docs/adr/](./docs/adr/) for the record of individual decisions and their tradeoffs.
+See [docs/adr/](./docs/adr/) for the record of individual decisions and their
+tradeoffs — starting with
+[ADR-0001](./docs/adr/0001-deterministic-rule-based-compaction.md), on why
+compaction is deterministic rule-based text processing rather than an LLM
+call.
 
 ## Non-goals
 - Not an LLM-based summarizer — all compaction/compression is deterministic

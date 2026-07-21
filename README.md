@@ -1,5 +1,7 @@
 # rusty_compactor
 
+[![CI](https://github.com/baileyrd/rusty_compactor/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/baileyrd/rusty_compactor/actions/workflows/ci.yml)
+
 A Rust CLI that cuts LLM token usage for AI coding agents (Claude Code and
 friends), combining the ideas of two projects into one binary:
 
@@ -45,11 +47,24 @@ cargo build --release
 rusty_compactor run -- git status
 rusty_compactor run -- cargo test
 rusty_compactor run --dry-run -- docker ps    # show which rule would match, don't execute
+rusty_compactor run --no-compact -- npm test  # execute normally, skip compaction
 ```
 
 `run` executes the command (via `sh -c`), captures stdout+stderr, and prints
 the compacted result — propagating the original exit code so scripting
 against it still works.
+
+To compact already-captured output (a saved log, a fixture file) without
+executing anything, pipe it in with `--from-stdin`:
+
+```sh
+rusty_compactor run --from-stdin -- cargo test < saved_output.txt
+```
+
+Rule matching is still based on the `command` you pass (`cargo test` here),
+it's just the process spawn that's skipped — this is also how the golden
+tests under `crates/rc-cli/tests/` work without needing the real tools
+installed (see [Testing](#testing) below).
 
 ### Compress prose
 

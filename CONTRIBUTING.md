@@ -5,6 +5,11 @@
 - Keep diffs focused — one logical change per PR.
 - For large or hard-to-reverse changes (schema/data migrations, public API changes,
   deletions, dependency/toolchain bumps), open an issue or draft PR to discuss first.
+- Significant architectural decisions (a new dependency category, a change to how
+  compaction or the hook protocol works, anything a future contributor would
+  reasonably ask "why was it done this way?" about) get an ADR under `docs/adr/` —
+  see [ADR-0001](./docs/adr/0001-deterministic-rule-based-compaction.md) for the
+  format and level of detail expected.
 
 ## Workflow
 1. Branch off the default branch.

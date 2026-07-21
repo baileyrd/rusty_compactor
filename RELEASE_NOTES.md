@@ -23,6 +23,38 @@ against `main` instead, reverse chronological.
 
 ---
 
+## Fix compound-command handling in run (data-loss bug)
+**2026-07-21** · [ea44029](https://github.com/baileyrd/rusty_compactor/commit/ea440290718db553a18c83d30bb504405ff2333e)
+
+- **Fixed:** compound commands (`cmd1 && cmd2`) used to be executed as one
+  `sh -c` call and rule-matched as a single command — using only the first
+  command's rule for the whole combined output. This wasn't just a quality
+  issue: `git status && echo plain-output-line` in a clean repo compacted
+  down to just the git status summary, because the structured parser's
+  clean-tree early return matched against the *combined* output and
+  silently discarded the second command's output entirely. Confirmed live
+  before writing the fix, by comparing this project's hook approach
+  against rtk's and finding the two diverge exactly here.
+- **Added:** `rc_core::split_compound` splits a raw command on top-level
+  `&&`/`||`/`;`, while correctly leaving a lone `|` (pipe), anything inside
+  `(...)`/`$(...)`/quotes, and anything inside a `for`/`while`/`until`/
+  `if`/`case` block untouched. `run` now executes each segment
+  independently, applying `&&`/`||`/`;` short-circuit semantics itself and
+  returning the last-executed segment's exit code; `--dry-run` shows the
+  matched rule per segment.
+- **Known limitation, stated plainly:** not a full POSIX shell parser —
+  see [ADR-0002](./docs/adr/0002-split-compound-commands-in-run-not-the-hook.md)
+  for the reasoning and what's deliberately out of scope. `--from-stdin`
+  is intentionally left compound-unaware (a single piped blob can't be
+  attributed to multiple segments).
+- 15 new tests (9 unit in `rc-core` covering the splitter's edge cases —
+  including catching, before it shipped, that the existing
+  `for i in $(seq 1 50); do echo x; done` test's internal `;`s aren't
+  command boundaries — plus 6 integration tests in `rc-cli` covering the
+  bug fix itself, short-circuit semantics, and piped chains staying
+  intact). 78 tests passing across the workspace (up from 63); clippy/fmt
+  clean.
+
 ## Add integration test harness with golden-fixture snapshots
 **2026-07-21** · [da7c6b0](https://github.com/baileyrd/rusty_compactor/commit/da7c6b05306bc0a351cdd9f587db4c3aa95f1712)
 

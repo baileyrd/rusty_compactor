@@ -21,6 +21,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   "no changes added to commit ..." summary line as if it were an
   untracked filename; section entries must now be indented, matching
   git's own output convention.
+- Compound commands (`cmd1 && cmd2`) are now split and compacted per
+  segment instead of being executed and rule-matched as one blob — the
+  old behavior could silently drop a later command's entire output when
+  an earlier structured parser's early return matched first.
 
 See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the narrative, per-commit
 version of this history with reasoning and known limitations.

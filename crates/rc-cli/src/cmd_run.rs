@@ -1,6 +1,7 @@
+use std::io::Read as _;
 use std::process::Command as Process;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Args;
 use rc_core::{CommandOutput, Config};
 use rc_engine::RuleTable;
@@ -16,6 +17,12 @@ pub struct RunArgs {
     /// Skip compaction entirely; just execute and print raw output.
     #[arg(long)]
     pub no_compact: bool,
+    /// Don't execute `command` — instead compact whatever is piped into
+    /// stdin, matching rules as if it were that command's output. Useful
+    /// for replaying a saved log, or for fixture-based tests that don't
+    /// have the real tool installed.
+    #[arg(long)]
+    pub from_stdin: bool,
     /// The command to run. Pass it as a single quoted string to preserve
     /// shell operators (pipes, &&, redirects); multiple bare words are
     /// joined with spaces and executed the same way.
@@ -36,12 +43,30 @@ pub fn run(args: RunArgs) -> Result<i32> {
         return Ok(0);
     }
 
-    let output = Process::new("sh").arg("-c").arg(&raw).output()?;
-    let exit_code = output.status.code().unwrap_or(1);
-    let command_output = CommandOutput {
-        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
-        exit_code: output.status.code(),
+    let (command_output, exit_code) = if args.from_stdin {
+        let mut stdout = String::new();
+        std::io::stdin()
+            .read_to_string(&mut stdout)
+            .context("reading stdin")?;
+        (
+            CommandOutput {
+                stdout,
+                stderr: String::new(),
+                exit_code: None,
+            },
+            0,
+        )
+    } else {
+        let output = Process::new("sh").arg("-c").arg(&raw).output()?;
+        let exit_code = output.status.code().unwrap_or(1);
+        (
+            CommandOutput {
+                stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+                stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+                exit_code: output.status.code(),
+            },
+            exit_code,
+        )
     };
 
     if args.no_compact || !cfg.enabled {

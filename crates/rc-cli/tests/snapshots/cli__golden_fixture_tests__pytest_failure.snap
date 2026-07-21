@@ -1,0 +1,8 @@
+---
+source: crates/rc-cli/tests/cli.rs
+expression: "compact_fixture(&[\"pytest\"], \"pytest_failure.txt\")"
+---
+1 failed, 41 passed in 3.42s
+FAILED tests/test_api.py::test_create_order
+E       assert 20.98 == 19.98
+E        +  where 20.98 = Order(sku='ABC123', qty=2).total

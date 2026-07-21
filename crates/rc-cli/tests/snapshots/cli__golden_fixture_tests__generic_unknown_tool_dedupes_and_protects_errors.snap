@@ -1,0 +1,11 @@
+---
+source: crates/rc-cli/tests/cli.rs
+expression: "compact_fixture(&[\"widgetctl\", \"status\"], \"generic_noisy_log.txt\")"
+---
+[INFO] heartbeat ok, node-0 healthy (×12)
+[INFO] heartbeat ok, node-1 healthy (×12)
+[INFO] heartbeat ok, node-2 healthy (×12)
+[INFO] heartbeat ok, node-3 healthy (×12)
+[INFO] heartbeat ok, node-4 healthy (×12)
+[ERROR] node-3 failed liveness probe: connection refused
+[WARN] retrying in 5s (attempt 2/5)

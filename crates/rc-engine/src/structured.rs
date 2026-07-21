@@ -71,6 +71,14 @@ fn git_status(raw: &str) -> Option<String> {
         if line.trim().is_empty() || line.trim_start().starts_with('(') {
             continue;
         }
+        // git indents every entry under a section header (staged/unstaged/
+        // untracked); an unindented line means the section has ended (e.g.
+        // the trailing "no changes added to commit ..." summary), so stop
+        // collecting instead of misreading it as a file entry.
+        if section != 0 && !line.starts_with(char::is_whitespace) {
+            section = 0;
+            continue;
+        }
         match section {
             1 => {
                 if let Some(c) = STATUS_ENTRY.captures(line) {
@@ -363,6 +371,20 @@ Untracked files:
         assert!(out.contains("Staged (1): src/lib.rs"));
         assert!(out.contains("Unstaged (1): src/main.rs"));
         assert!(out.contains("Untracked (1): scratch.txt"));
+    }
+
+    #[test]
+    fn git_status_stops_untracked_section_at_trailing_summary_line() {
+        let raw = "\
+On branch main
+Untracked files:
+  (use \"git add <file>...\" to include in what will be committed)
+        scratch.txt
+
+no changes added to commit (use \"git add\" and/or \"git commit -a\")
+";
+        let out = git_status(raw).unwrap();
+        assert_eq!(out, "On branch main\nUntracked (1): scratch.txt");
     }
 
     #[test]

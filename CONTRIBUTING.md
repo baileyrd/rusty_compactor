@@ -11,7 +11,12 @@
 2. Make your change. State the *why* in commit messages or PR description for any
    non-obvious decision.
 3. Add tests for non-trivial logic — happy path and at least one failure/boundary case.
-   Spikes/prototypes are exempt but should say so in the PR.
+   Spikes/prototypes are exempt but should say so in the PR. A rule-table or parser
+   change to `rc-engine` should usually come with (or update) a golden fixture under
+   `crates/rc-cli/tests/fixtures/` — see the README's Testing section. If your change
+   intentionally alters compacted output, regenerate the affected `.snap` file with
+   `INSTA_UPDATE=always cargo test -p rc-cli --test cli` and review the diff before
+   committing it; an unreviewed snapshot update defeats the point of the check.
 4. Add or update docstrings on any public surface you touched.
 5. Open a PR — pick the template that matches (feature / bug fix / docs / chore).
 

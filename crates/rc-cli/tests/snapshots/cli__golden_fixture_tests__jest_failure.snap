@@ -1,0 +1,9 @@
+---
+source: crates/rc-cli/tests/cli.rs
+expression: "compact_fixture(&[\"jest\"], \"jest_failure.txt\")"
+---
+FAIL  src/api/client.test.ts
+  ● client › retries on 500
+Test Suites: 1 failed, 2 passed, 3 total
+Tests:       1 failed, 24 passed, 25 total
+Snapshots:   0 total

@@ -139,3 +139,25 @@ cargo build --workspace
 cargo test --workspace
 cargo clippy --workspace --all-targets
 ```
+
+### Testing
+
+Each crate has unit tests for its own logic (rule matching, the compaction
+pipeline, structured parsers, prose compression). `crates/rc-cli/tests/cli.rs`
+adds a black-box integration suite that spawns the actual `rusty_compactor`
+binary via [`assert_cmd`](https://docs.rs/assert_cmd) — every test runs in its
+own temp dir with `$HOME` pointed at it too, so hook installs, config, and the
+stats log never touch your real environment or interfere with each other.
+
+It also includes golden-fixture tests: realistic captured tool output (a
+failing `pytest` run, a dirty `git status`, a flaky `jest` suite, ...) lives
+under `crates/rc-cli/tests/fixtures/` and gets piped through
+`rusty_compactor run --from-stdin -- <command>` — a mode that compacts
+whatever's on stdin as if it were that command's output, without executing
+anything, so these tests need no real cargo/npm/pytest/etc. installed.
+Results are pinned with [`insta`](https://docs.rs/insta) snapshots
+(`crates/rc-cli/tests/snapshots/`); a rule-table change that silently breaks
+one of these shows up as a diff instead of passing unnoticed. To add a case:
+drop a new fixture file, add a test calling it, then run
+`INSTA_UPDATE=always cargo test -p rc-cli --test cli`, review the generated
+`.snap` file, and commit it alongside the fixture.

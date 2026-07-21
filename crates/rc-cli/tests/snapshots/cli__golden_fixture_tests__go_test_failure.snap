@@ -1,0 +1,7 @@
+---
+source: crates/rc-cli/tests/cli.rs
+expression: "compact_fixture(&[\"go\", \"test\", \"./...\"], \"go_test_failure.txt\")"
+---
+1 package(s) passed
+--- FAIL: TestValidateInput (0.01s)
+FAIL	github.com/acme/widget/validate	0.014s

@@ -1,0 +1,10 @@
+=== RUN   TestParseConfig
+--- PASS: TestParseConfig (0.00s)
+=== RUN   TestLoadDefaults
+--- PASS: TestLoadDefaults (0.00s)
+=== RUN   TestValidateInput
+--- FAIL: TestValidateInput (0.01s)
+    validate_test.go:33: expected error for empty input, got nil
+FAIL
+ok  	github.com/acme/widget/config	0.012s
+FAIL	github.com/acme/widget/validate	0.014s

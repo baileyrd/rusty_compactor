@@ -1,0 +1,6 @@
+---
+source: crates/rc-cli/tests/cli.rs
+expression: "compact_fixture(&[\"npm\", \"install\"], \"npm_install.txt\")"
+---
+added 342 packages, and audited 343 packages in 8s
+3 vulnerabilities (1 low, 2 moderate)

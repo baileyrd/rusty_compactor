@@ -1,0 +1,33 @@
+   Compiling rc-core v0.1.0 (/home/user/rusty_compactor/crates/rc-core)
+   Compiling rc-engine v0.1.0 (/home/user/rusty_compactor/crates/rc-engine)
+   Compiling rc-compress v0.1.0 (/home/user/rusty_compactor/crates/rc-compress)
+   Compiling rc-cli v0.1.0 (/home/user/rusty_compactor/crates/rc-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.21s
+     Running unittests src/lib.rs (target/debug/deps/rc_engine-53f688b399b66106)
+
+running 5 tests
+test registry::tests::finds_exact_before_wildcard ... ok
+test strategies::tests::dedupes_repeated_lines ... ok
+test strategies::tests::drops_noise_lines ... ok
+test structured::tests::git_status_dirty ... FAILED
+test strategies::tests::groups_similar_lines_with_count ... ok
+
+failures:
+
+---- structured::tests::git_status_dirty stdout ----
+
+thread 'structured::tests::git_status_dirty' panicked at crates/rc-engine/src/structured.rs:210:9:
+assertion failed: out.contains("Staged (1): src/lib.rs")
+stack backtrace:
+   0: rust_begin_unwind
+   1: core::panicking::panic_fmt
+   2: rc_engine::structured::tests::git_status_dirty
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    structured::tests::git_status_dirty
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p rc-engine --lib`

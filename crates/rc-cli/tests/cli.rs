@@ -110,6 +110,114 @@ mod run_tests {
         );
     }
 
+    /// Regression test: a compound command used to be treated as one blob,
+    /// rule-matched only on its first command. Since `git status`'s
+    /// structured parser short-circuits on a clean tree (`raw.contains(...)`
+    /// over the *combined* output), a second chained command's real output
+    /// was silently swallowed whenever a real `git status` happened to be
+    /// first in the chain and the tree was clean.
+    #[test]
+    fn compound_command_compacts_each_segment_independently() {
+        let (mut cmd, dir) = isolated();
+        for args in [
+            vec!["init", "-q", "-b", "main"],
+            vec!["config", "user.email", "test@example.com"],
+            vec!["config", "user.name", "Test"],
+            vec!["commit", "-q", "--allow-empty", "-m", "init"],
+        ] {
+            let status = std::process::Command::new("git")
+                .args(&args)
+                .current_dir(dir.path())
+                .status()
+                .expect("run git");
+            assert!(status.success(), "git {args:?} failed");
+        }
+
+        let assert = cmd
+            .arg("run")
+            .arg("--")
+            .arg("git status && echo plain-output-line")
+            .assert()
+            .success();
+        let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+        assert!(
+            stdout.contains("clean, nothing to commit"),
+            "first segment's structured parser should still fire: {stdout:?}"
+        );
+        assert!(
+            stdout.contains("plain-output-line"),
+            "second segment's output must survive, not be swallowed by the first: {stdout:?}"
+        );
+    }
+
+    #[test]
+    fn and_operator_short_circuits_on_failure() {
+        let (mut cmd, _dir) = isolated();
+        let assert = cmd
+            .arg("run")
+            .arg("--")
+            .arg("false && echo should-not-run")
+            .assert()
+            .code(1);
+        let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+        assert!(!stdout.contains("should-not-run"), "{stdout:?}");
+    }
+
+    #[test]
+    fn or_operator_runs_next_only_on_failure() {
+        let (mut cmd, _dir) = isolated();
+        let assert = cmd
+            .arg("run")
+            .arg("--")
+            .arg("false || echo should-run")
+            .assert()
+            .success();
+        let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+        assert!(stdout.contains("should-run"), "{stdout:?}");
+    }
+
+    #[test]
+    fn semicolon_runs_next_unconditionally() {
+        let (mut cmd, _dir) = isolated();
+        let assert = cmd
+            .arg("run")
+            .arg("--")
+            .arg("false ; echo runs-anyway")
+            .assert()
+            .success();
+        let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+        assert!(stdout.contains("runs-anyway"), "{stdout:?}");
+    }
+
+    #[test]
+    fn a_for_loop_with_internal_semicolons_is_not_split() {
+        let (mut cmd, _dir) = isolated();
+        let assert = cmd
+            .arg("run")
+            .arg("--")
+            .arg("for i in $(seq 1 3); do echo loop-line; done")
+            .assert()
+            .success();
+        let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+        assert!(
+            stdout.contains("loop-line (\u{d7}3)"),
+            "loop should run as one command, not fragment on the internal ';': {stdout:?}"
+        );
+    }
+
+    #[test]
+    fn a_lone_pipe_still_runs_as_one_real_pipeline() {
+        let (mut cmd, _dir) = isolated();
+        let assert = cmd
+            .arg("run")
+            .arg("--")
+            .arg("printf 'a\\nb\\nc\\n' | tail -2")
+            .assert()
+            .success();
+        let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+        assert_eq!(stdout.trim(), "b\nc");
+    }
+
     #[test]
     fn from_stdin_compacts_without_executing_anything() {
         let (mut cmd, _dir) = isolated();

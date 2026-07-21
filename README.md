@@ -18,17 +18,71 @@ Everything is deterministic Rust — no LLM calls, no network, no telemetry.
 
 ## Install
 
+### Prerequisites
+A Rust toolchain (stable) — install via [rustup](https://rustup.rs/) if you
+don't have one; `rustc --version` should print something. There's no
+crates.io publish or prebuilt binary release yet, so building from source is
+currently the only way to get it.
+
+### Build and install
+
 ```sh
+git clone https://github.com/baileyrd/rusty_compactor.git
+cd rusty_compactor
 cargo install --path crates/rc-cli
-# binary name: rusty_compactor
 ```
 
-Or build in place:
+`cargo install` puts the `rusty_compactor` binary in `~/.cargo/bin`, which
+needs to be on your `PATH` (rustup's installer adds this automatically for
+most shells; if `rusty_compactor --version` doesn't work after installing,
+check `echo $PATH` includes `~/.cargo/bin`).
+
+Prefer not to install it globally? Build and run it directly from the repo:
 
 ```sh
 cargo build --release
 ./target/release/rusty_compactor --help
 ```
+
+### Set up the Claude Code hook
+
+Installing the binary doesn't wire it into Claude Code — that's a separate
+step, since it edits Claude Code's own settings file:
+
+```sh
+rusty_compactor hook install          # writes ./.claude/settings.json (project-local, shareable)
+rusty_compactor hook install --user   # writes ~/.claude/settings.json (applies to every project)
+```
+
+This merges a `PreToolUse` hook entry for the `Bash` tool into that file
+(existing keys/hooks are left alone — `hook install` only ever touches its
+own entry, and re-running it is safe/idempotent):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "/home/you/.cargo/bin/rusty_compactor hook exec" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Restart Claude Code (or start a new session) after installing** — hooks
+are only read at session start. Confirm it took effect:
+
+```sh
+rusty_compactor hook status   # "Hook installed in ..." / "Hook NOT installed in ..."
+```
+
+To remove it, `rusty_compactor hook uninstall` (same `--user` flag). See
+[Claude Code hook](#claude-code-hook) below for what `hook exec` actually
+does at runtime once it's wired in.
 
 ## Workspace layout
 

@@ -23,6 +23,29 @@ against `main` instead, reverse chronological.
 
 ---
 
+## Add integration test harness with golden-fixture snapshots
+**2026-07-21** · [da7c6b0](https://github.com/baileyrd/rusty_compactor/commit/da7c6b05306bc0a351cdd9f587db4c3aa95f1712)
+
+- **Added:** a black-box integration suite (`crates/rc-cli/tests/cli.rs`)
+  that spawns the real binary via `assert_cmd` — `run`, `compress`, `hook
+  install/uninstall/status/exec`, `config`, `stats` — each isolated to its
+  own temp dir + `$HOME`.
+- **Added:** a `run --from-stdin` mode that compacts piped-in text against
+  a named command's rule without executing anything, plus golden-fixture
+  tests (realistic captured cargo/git/pytest/npm/jest/go output under
+  `crates/rc-cli/tests/fixtures/`) pinned with `insta` snapshots, so a
+  rule-table regression shows up as a diff instead of passing unnoticed.
+- **Fixed:** the structured `git status` parser never left the "Untracked
+  files" section, so it swallowed git's trailing "no changes added to
+  commit ..." summary line as if it were a filename. Found by building the
+  `git_status_dirty` fixture from real captured output rather than a
+  synthetic snippet — exactly the class of bug this harness exists to
+  catch. Fixed by requiring section entries to be indented (matching
+  git's own convention), with both a unit regression test and the golden
+  fixture locking it in.
+- 63 tests passing across the workspace (up from 34); `cargo clippy
+  --workspace --all-targets -- -D warnings` and `cargo fmt --check` clean.
+
 ## Add basic CI workflow
 **2026-07-21** · [83f6b4b](https://github.com/baileyrd/rusty_compactor/commit/83f6b4b7207cd412e85dfd298958f3c7753ccec5)
 

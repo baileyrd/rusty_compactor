@@ -23,6 +23,19 @@ against `main` instead, reverse chronological.
 
 ---
 
+## Add basic CI workflow
+**2026-07-21** · [83f6b4b](https://github.com/baileyrd/rusty_compactor/commit/83f6b4b7207cd412e85dfd298958f3c7753ccec5)
+
+- **Added:** `.github/workflows/ci.yml`, running on push to `main` and on
+  every pull request: `cargo fmt --check`, `cargo clippy --workspace
+  --all-targets -- -D warnings`, `cargo build --workspace --all-targets`,
+  `cargo test --workspace`, with `Swatinem/rust-cache` for cargo caching.
+- All four steps were run locally before pushing to confirm they pass as
+  written, including clippy with warnings promoted to errors (stricter than
+  the plain `cargo clippy` used during development).
+- **Known limitation:** single job, single OS/toolchain (`ubuntu-latest` +
+  stable) — no matrix across OSes or MSRV pinning yet.
+
 ## Initial implementation — Rust reimplementation of rtk + caveman
 **2026-07-21** · [d52423d](https://github.com/baileyrd/rusty_compactor/commit/d52423d1dd3ca9006609df124a18599d54a66388)
 

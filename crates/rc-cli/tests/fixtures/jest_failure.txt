@@ -1,0 +1,22 @@
+PASS  src/utils/format.test.ts
+PASS  src/utils/parse.test.ts
+FAIL  src/api/client.test.ts
+  ● client › retries on 500
+
+    expect(received).toBe(expected)
+
+    Expected: 3
+    Received: 1
+
+      42 |   const calls = mockFetch.mock.calls.length;
+      43 |   expect(calls).toBe(3);
+    > 44 |
+         | ^
+
+      at Object.<anonymous> (src/api/client.test.ts:44:20)
+
+Test Suites: 1 failed, 2 passed, 3 total
+Tests:       1 failed, 24 passed, 25 total
+Snapshots:   0 total
+Time:        2.914s
+Ran all test suites.

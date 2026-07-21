@@ -1,0 +1,22 @@
+   Compiling rc-core v0.1.0 (/home/user/rusty_compactor/crates/rc-core)
+   Compiling rc-engine v0.1.0 (/home/user/rusty_compactor/crates/rc-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.10s
+     Running unittests src/lib.rs (target/debug/deps/rc_engine-53f688b399b66106)
+
+running 14 tests
+test registry::tests::finds_exact_before_wildcard ... ok
+test registry::tests::covers_100_plus_command_keys ... ok
+test strategies::tests::dedupes_repeated_lines ... ok
+test strategies::tests::drops_noise_lines ... ok
+test registry::tests::end_to_end_compacts_cargo_test_output ... ok
+test strategies::tests::groups_similar_lines_with_count ... ok
+test structured::tests::cargo_test_summary ... ok
+test strategies::tests::passthrough_when_within_budget ... ok
+test strategies::tests::protects_keep_lines_from_truncation ... ok
+test structured::tests::git_status_clean ... ok
+test structured::tests::diff_collapses_long_context ... ok
+test registry::tests::falls_back_to_generic_for_unknown_program ... ok
+test structured::tests::git_status_dirty ... ok
+test structured::tests::pytest_summary_extraction ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s

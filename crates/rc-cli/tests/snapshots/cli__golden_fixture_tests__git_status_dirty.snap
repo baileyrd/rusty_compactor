@@ -1,0 +1,8 @@
+---
+source: crates/rc-cli/tests/cli.rs
+expression: "compact_fixture(&[\"git\", \"status\"], \"git_status_dirty.txt\")"
+---
+On branch main
+Staged (1): crates/rc-cli/src/cmd_run.rs
+Unstaged (2): crates/rc-engine/src/defaults.rs, README.md
+Untracked (2): crates/rc-cli/tests/, scratch_notes.txt

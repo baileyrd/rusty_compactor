@@ -1,0 +1,7 @@
+---
+source: crates/rc-cli/tests/cli.rs
+expression: "compact_fixture(&[\"cargo\", \"test\"], \"cargo_test_failure.txt\")"
+---
+test result: 4 passed, 1 failed
+FAILED: structured::tests::git_status_dirty
+thread 'structured::tests::git_status_dirty' panicked at crates/rc-engine/src/structured.rs:210:9:

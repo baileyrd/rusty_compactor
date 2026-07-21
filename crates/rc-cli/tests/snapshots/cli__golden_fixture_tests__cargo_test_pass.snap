@@ -1,0 +1,5 @@
+---
+source: crates/rc-cli/tests/cli.rs
+expression: "compact_fixture(&[\"cargo\", \"test\"], \"cargo_test_pass.txt\")"
+---
+test result: 14 passed, 0 failed

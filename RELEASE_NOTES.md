@@ -1,0 +1,48 @@
+# Release Notes
+
+<!--
+Two variants, pick the one that fits this repo's actual unit of change:
+
+1. No version tags yet (pre-1.0, nothing published) — track by PR instead, same way
+   AISF does it: one entry per merged PR against main, reverse chronological, each
+   linking to its PR and (where one exists) to the doc that covers the change in full
+   detail. Use "## PR #N — <summary>" headers.
+
+2. Actual version tags exist — use "## vX.Y.Z - YYYY-MM-DD" headers instead, each
+   linking to the PRs it shipped and a compare link to the previous tag. Add an
+   "### Upgrade notes" subsection under any entry with a breaking change.
+
+Either way, keep the tone AISF's file uses: bolded category tags inline in the
+bullet (**Added:** / **Changed:** / **Fixed:**), not separate subheaders per
+category — and state known limitations or deliberate scope cuts plainly instead of
+leaving them implied.
+-->
+
+No PRs opened yet — this repo isn't tag-versioned, so entries track by commit
+against `main` instead, reverse chronological.
+
+---
+
+## Initial implementation — Rust reimplementation of rtk + caveman
+**2026-07-21** · [d52423d](https://github.com/baileyrd/rusty_compactor/commit/d52423d1dd3ca9006609df124a18599d54a66388)
+
+- **Added:** the full `rusty_compactor` workspace (`rc-core`, `rc-engine`,
+  `rc-compress`, `rc-cli`) combining two prior-art token-saving tools into
+  one Rust binary: rtk-style command-output compaction (192-key rule table
+  plus structured parsers for the ~10 highest-traffic commands) and
+  caveman-style prose compression (four levels, code/command/error spans
+  always protected).
+- **Added:** a Claude Code `PreToolUse` hook (`hook install/uninstall/
+  status/exec`) that rewrites Bash tool calls to route through
+  `rusty_compactor run`, verified against the actual Claude Code hooks docs
+  rather than assumed.
+- **Known limitation, stated plainly:** the long tail of the 192 covered
+  commands relies on the generic drop/group/dedupe/truncate pipeline rather
+  than bespoke parsing — only git/cargo/npm/pytest/jest/go get hand-tuned
+  structured parsers. The prose compressor is a deterministic rule-based
+  text transform (word/phrase substitution + article dropping), not
+  grammar-aware, so occasional minor phrasing artifacts (e.g. dropped
+  articles inside idioms like "a lot of") are expected at higher
+  compression levels.
+- 34 unit/integration tests passing across the workspace; `cargo clippy
+  --workspace --all-targets` clean.

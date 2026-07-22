@@ -108,6 +108,19 @@ rusty_compactor run --no-compact -- npm test  # execute normally, skip compactio
 the compacted result — propagating the original exit code so scripting
 against it still works.
 
+Compound commands are split on top-level `&&`, `||`, and `;` and each piece
+is executed, rule-matched, and compacted independently — `git status &&
+cargo test` runs both and applies each one's own rule, rather than
+compacting the whole chain as if it were one command (which used to mean a
+structured parser's early return, like git status's clean-tree summary,
+could silently swallow every other command's output). `&&`/`||`/`;`
+short-circuit semantics and the final exit code are preserved. A lone `|`
+(pipe) is never split — compacting one side would change what the other
+side actually receives, so piped chains still run as a single real
+pipeline — and anything inside `(...)`/quotes/a `for`/`while`/`if`/`case`
+block is left alone too (see `rc_core::split_compound`'s tests for the
+exact boundary cases covered).
+
 To compact already-captured output (a saved log, a fixture file) without
 executing anything, pipe it in with `--from-stdin`:
 

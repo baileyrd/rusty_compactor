@@ -34,15 +34,22 @@ invoked per command.
 1. Claude Code's Bash tool is about to run a command → `PreToolUse` hook
    fires → `rusty_compactor hook exec` reads the event JSON, emits
    `updatedInput.command` wrapping it as `rusty_compactor run -- '<cmd>'`.
-2. `rusty_compactor run` executes the real command via `sh -c`, captures
-   stdout+stderr+exit code.
-3. `rc_engine::compact` parses the command (`ParsedCommand`), tries a
+2. `rusty_compactor run` splits the command into segments on top-level
+   `&&`/`||`/`;` (`rc_core::split_compound` — a lone `|`, and anything
+   inside `(...)`/quotes/a `for`/`while`/`if`/`case` block, is never a split
+   point) and executes each segment via `sh -c` in order, applying
+   `&&`/`||`/`;` short-circuit semantics itself; see
+   [ADR-0002](./docs/adr/0002-split-compound-commands-in-run-not-the-hook.md)
+   for why this lives here rather than as a hook-time text rewrite.
+3. Each segment's captured stdout+stderr goes through `rc_engine::compact`,
+   which parses the command (`ParsedCommand`), tries a
    structured parser first (git status/diff, cargo build/test, npm install,
    pytest, jest, go test), then falls back to the generic rule-based
    drop/group/dedupe/truncate pipeline against the matched `CompiledRule`.
-4. Compacted text is printed to stdout (what the agent actually sees) and a
-   `StatsRecord` is appended to the local JSONL log; the process exits with
-   the wrapped command's real exit code.
+4. Each segment's compacted text is printed to stdout in order (what the
+   agent actually sees) and its own `StatsRecord` is appended to the local
+   JSONL log; the process exits with the last-executed segment's real exit
+   code (matching normal shell `&&`/`||`/`;` chain semantics).
 5. Independently, `rusty_compactor compress` runs the same segment-then-
    rewrite pipeline over prose text (`rc_compress`), protecting code/command/
    error spans before applying level-gated word/phrase rules.
@@ -56,10 +63,13 @@ invoked per command.
 
 ## Key decisions
 See [docs/adr/](./docs/adr/) for the record of individual decisions and their
-tradeoffs — starting with
-[ADR-0001](./docs/adr/0001-deterministic-rule-based-compaction.md), on why
-compaction is deterministic rule-based text processing rather than an LLM
-call.
+tradeoffs:
+- [ADR-0001](./docs/adr/0001-deterministic-rule-based-compaction.md) — why
+  compaction is deterministic rule-based text processing rather than an LLM
+  call.
+- [ADR-0002](./docs/adr/0002-split-compound-commands-in-run-not-the-hook.md)
+  — why compound commands (`cmd1 && cmd2`) are split and compacted per
+  segment inside `run` itself, not via hook-time text rewriting.
 
 ## Non-goals
 - Not an LLM-based summarizer — all compaction/compression is deterministic
@@ -70,3 +80,9 @@ call.
 - Not trying to hand-write bespoke parsers for every one of the 190+ covered
   commands — only the highest-traffic ones get structured parsers; the long
   tail relies on the generic rule engine.
+- Not a full POSIX shell parser — `rc_core::split_compound` tracks quotes,
+  `(...)`/`$(...)` nesting, and `for`/`while`/`until`/`if`/`case` block
+  depth well enough to split real `&&`/`||`/`;` chains correctly, but
+  unusual constructs it doesn't specifically recognize fall back to being
+  treated as one opaque segment rather than being (possibly incorrectly)
+  split. See [ADR-0002](./docs/adr/0002-split-compound-commands-in-run-not-the-hook.md).
